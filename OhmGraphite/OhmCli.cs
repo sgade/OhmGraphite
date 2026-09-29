@@ -153,9 +153,7 @@ namespace OhmGraphite
             {
                 var configFile = parseResult.GetValue(configOption);
                 var force = parseResult.GetValue(forceOption);
-                var path = configFile == null
-                    ? Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "OhmGraphite.exe.config")
-                    : configFile.FullName;
+                var path = configFile == null ? DefaultConfigPath() : configFile.FullName;
 
                 if (File.Exists(path) && !force)
                 {
@@ -166,7 +164,6 @@ namespace OhmGraphite
 
                 File.WriteAllText(path, SampleConfig);
                 Console.WriteLine($"Wrote sample configuration to {path}");
-                Console.WriteLine("See https://github.com/nickbabcock/OhmGraphite#configuration for InfluxDB, Prometheus, and TimescaleDB examples.");
             });
             rootCommand.Subcommands.Add(initCommand);
 
@@ -232,11 +229,14 @@ namespace OhmGraphite
             return process.ExitCode;
         }
 
+        private static string DefaultConfigPath() =>
+            Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "OhmGraphite.exe.config");
+
         private static IAppConfig CreateConfiguration(string configPath)
         {
             if (string.IsNullOrEmpty(configPath))
             {
-                var fn = Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "OhmGraphite.exe.config");
+                var fn = DefaultConfigPath();
                 if (!File.Exists(fn))
                 {
                     throw new ApplicationException($"unable to detect config: {fn}. Run 'OhmGraphite.exe init' to create one.");
