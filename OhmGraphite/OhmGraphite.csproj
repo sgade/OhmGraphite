@@ -51,7 +51,6 @@
     <RemoveDir Directories="$(BaseOutputPath)tmp\" ContinueOnError="true" />
     <MakeDir Directories="$(BaseOutputPath)tmp\" />
     <Copy SourceFiles="$(OutputPath)\publish\OhmGraphite.exe" DestinationFolder="$(BaseOutputPath)tmp\" />
-    <Copy SourceFiles="$(OutputPath)\publish\OhmGraphite.dll.config" DestinationFiles="$(BaseOutputPath)tmp\OhmGraphite.exe.config" />
     <Copy SourceFiles="$(OutputPath)\publish\NLog.config" DestinationFolder="$(BaseOutputPath)tmp\" />
 
     <ZipDirectory Overwrite="true" SourceDirectory="$(BaseOutputPath)\tmp" DestinationFile="$(BaseOutputPath)OhmGraphite-$(Major).$(Minor).$(Revision).zip" />

@@ -17,6 +17,18 @@ namespace OhmGraphite
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        // Keep in sync with App.config
+        private const string SampleConfig =
+@"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<configuration>
+  <appSettings>
+    <add key=""host"" value=""localhost"" />
+    <add key=""port"" value=""2003"" />
+    <add key=""interval"" value=""5"" />
+  </appSettings>
+</configuration>
+";
+
         public static async Task Execute(string[] args)
         {
             var serviceName = "OhmGraphite";
@@ -131,6 +143,35 @@ namespace OhmGraphite
             });
             rootCommand.Subcommands.Add(uninstallCommand);
 
+            var forceOption = new Option<bool>("--force")
+            {
+                Description = "Overwrite the config file if it already exists"
+            };
+
+            var initCommand = new Command("init", "Writes a sample configuration file to get started");
+            initCommand.Options.Add(configOption);
+            initCommand.Options.Add(forceOption);
+            initCommand.SetAction((parseResult) =>
+            {
+                var configFile = parseResult.GetValue(configOption);
+                var force = parseResult.GetValue(forceOption);
+                var path = configFile == null
+                    ? Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "OhmGraphite.exe.config")
+                    : configFile.FullName;
+
+                if (File.Exists(path) && !force)
+                {
+                    Console.Error.WriteLine($"{path} already exists. Use --force to overwrite it.");
+                    Environment.ExitCode = 1;
+                    return;
+                }
+
+                File.WriteAllText(path, SampleConfig);
+                Console.WriteLine($"Wrote sample configuration to {path}");
+                Console.WriteLine("See https://github.com/nickbabcock/OhmGraphite#configuration for InfluxDB, Prometheus, and TimescaleDB examples.");
+            });
+            rootCommand.Subcommands.Add(initCommand);
+
             var parseResult = rootCommand.Parse(args);
             await parseResult.InvokeAsync();
         }
@@ -198,6 +239,11 @@ namespace OhmGraphite
             if (string.IsNullOrEmpty(configPath))
             {
                 var fn = Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "OhmGraphite.exe.config");
+                if (!File.Exists(fn))
+                {
+                    throw new ApplicationException($"unable to detect config: {fn}. Run 'OhmGraphite.exe init' to create one.");
+                }
+
                 var configMap1 = new ExeConfigurationFileMap { ExeConfigFilename = fn };
                 var config1 = ConfigurationManager.OpenMappedExeConfiguration(configMap1, ConfigurationUserLevel.None);
                 return new CustomConfig(config1);
@@ -205,7 +251,7 @@ namespace OhmGraphite
 
             if (!File.Exists(configPath))
             {
-                throw new ApplicationException($"unable to detect config: ${configPath}");
+                throw new ApplicationException($"unable to detect config: {configPath}. Run 'OhmGraphite.exe init' to create one.");
             }
 
             var configMap = new ExeConfigurationFileMap { ExeConfigFilename = configPath };
