@@ -32,6 +32,9 @@
     <EmbeddedResource Include="..\assets\schema.sql">
       <LogicalName>schema.sql</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="App.config">
+      <LogicalName>SampleConfig.xml</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

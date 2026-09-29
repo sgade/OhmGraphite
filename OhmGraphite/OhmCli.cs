@@ -17,17 +17,15 @@ namespace OhmGraphite
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        // Keep in sync with App.config
-        private const string SampleConfig =
-@"<?xml version=""1.0"" encoding=""utf-8"" ?>
-<configuration>
-  <appSettings>
-    <add key=""host"" value=""localhost"" />
-    <add key=""port"" value=""2003"" />
-    <add key=""interval"" value=""5"" />
-  </appSettings>
-</configuration>
-";
+        private static readonly string SampleConfig = ReadSampleConfig();
+
+        private static string ReadSampleConfig()
+        {
+            using var stream = typeof(OhmCli).Assembly.GetManifestResourceStream("SampleConfig.xml")
+                ?? throw new InvalidOperationException("missing embedded SampleConfig.xml resource");
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
 
         public static async Task Execute(string[] args)
         {
